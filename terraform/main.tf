@@ -13,40 +13,64 @@ provider "google" {
   zone    = "US"
 }
 
-resource "google_storage_bucket" "ipnet_test_leonardo_borba" {
-  name          = "ipnet_leonardo_borba"
+resource "google_storage_bucket" "db_movies_raw2" {
+  name          = "db_movies_raw"
   location      = "US"
   force_destroy = true
+
+  public_access_prevention = "enforced"
 
   versioning {
     enabled = true
   }
 
+  lifecycle_rule {
+    condition {
+        age = 7
+        with_state = "ARCHIVED"
+    }
+    action {
+      type = "Delete"
+    }
+  }
+
+  lifecycle_rule {
+    condition {
+      num_newer_versions = 5
+      with_state = "ARCHIVED"
+    }
+    action {
+      type = "Delete"
+    }
+  }
+
 }
 
-resource "google_storage_bucket_object" "bd_movies" {
+resource "google_storage_bucket_object" "db_movies_file" {
   name         = "teste_lider_dados.csv"
-  bucket       = google_storage_bucket.ipnet_test_leonardo_borba.name
-  source       = "./teste_lider_dados.csv"
+  bucket       = google_storage_bucket.db_movies_raw2.name
+  source       = "../teste_lider_dados.csv"
   content_type = "text/csv"
+
 }
 
-resource "google_bigquery_dataset" "dataset_movies" {
-  dataset_id = "bd_movies_processed"
+resource "google_bigquery_dataset" "db_movies_processed" {
+  dataset_id = "db_movies_processed"
   project    = "ipnet-test-lb"
   location   = "US"
 
   labels = {
     "environment" = "ipnet-test",
-    "owner"       = "leonardo_borba"
+    "owner"       = "leonardo_borba",
+    "data_layer" = "processed"
   }
 
 }
 
 resource "google_bigquery_table" "tbl_movies" {
   deletion_protection = false
-  dataset_id          = google_bigquery_dataset.dataset_movies.dataset_id
-  project             = google_bigquery_dataset.dataset_movies.project
+  dataset_id          = google_bigquery_dataset.db_movies_processed.dataset_id
+  project             = google_bigquery_dataset.db_movies_processed.project
 
   table_id = "tbl_movies"
 
@@ -80,21 +104,26 @@ resource "google_bigquery_table" "tbl_movies" {
 
   labels = {
     "data_source" = "gcs_bucket_db_movies",
+    "environment" = "ipnet-test",
+    "owner"       = "leonardo_borba",
+    "data_layer" = "raw"
   }
 }
 
 
 
 resource "google_bigquery_job" "job" {
-  job_id = "job_load2"
+  job_id = "job_load4"
 
   labels = {
-    "my_job" = "load"
+    "load_from" = "gcs_bucket_db_movies",
+    "environment" = "ipnet-test",
+    "owner"       = "leonardo_borba",    
   }
 
   load {
     source_uris = [
-      "gs://${google_storage_bucket_object.bd_movies.bucket}/${google_storage_bucket_object.bd_movies.name}",
+      "gs://${google_storage_bucket_object.db_movies_file.bucket}/${google_storage_bucket_object.db_movies_file.name}",
     ]
 
     destination_table {
@@ -108,5 +137,26 @@ resource "google_bigquery_job" "job" {
 
     write_disposition = "WRITE_APPEND"
     autodetect        = true
+  }
+}
+
+resource "google_bigquery_dataset" "dataset_movies_curated" {
+  dataset_id = "db_movies_curated"
+  project    = "ipnet-test-lb"
+  location   = "US"
+
+  labels = {
+    "environment" = "ipnet-test",
+    "owner"       = "leonardo_borba",
+    "data_layer" = "curated"
+  }
+
+}
+
+resource "google_bigquery_job" "job_create_materialized_view" {
+  job_id     = "job_create_materialized_view4"
+
+  query {
+    query = "CREATE MATERIALIZED VIEW  `ipnet-test-lb.db_movies_curated.action_movies_from_90s` AS (SELECT * FROM `ipnet-test-lb.db_movies_processed.tbl_movies` where Genre like '%Action%' and Year_of_Release between 1990 and 1999);"
   }
 }
