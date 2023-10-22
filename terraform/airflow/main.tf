@@ -13,6 +13,20 @@ provider "google" {
   zone    = "US"
 }
 
+# Create a Google Cloud Storage bucket
+resource "google_storage_bucket" "airflow_dag_bucket" {
+  name     = "airflow-dags"  # Replace with your desired bucket name
+  location = "US"  # Choose the location that suits your requirements
+
+  force_destroy = true
+
+  public_access_prevention = "enforced"
+
+  versioning {
+    enabled = true
+  }
+}
+
 
 # Create a service account
 resource "google_service_account" "airflow_sa" {
@@ -56,16 +70,22 @@ resource "google_compute_instance" "airflow_instance" {
     apt-get update
     apt-get install -y python3-pip
     pip3 install apache-airflow
-    airflow initdb
+    airflow db init
+    
+    # Set up the DAG folder in the created Google Cloud Storage bucket
+    gsutil -m rsync -d -r gs://${google_storage_bucket.airflow_dag_bucket.name} /your/local/dag/folder
+    
+    # Configure Airflow to use the GCS bucket for DAGs
+    cat <<EOF_AIRFLOW_CONFIG > /root/airflow.cfg
+    [core]
+    dags_folder = gs://${google_storage_bucket.airflow_dag_bucket.name}
+    remote_logging = True
+    remote_log_conn_id = google_cloud_storage_default
+    EOF_AIRFLOW_CONFIG
+
+    # Start Airflow scheduler and webserver
     airflow webserver -p 8080 &
     airflow scheduler &
-    
-    # Use the service account key for authentication
-    echo '${google_service_account_key.airflow_sa_key.private_key}' > /tmp/airflow-service-account-key.json
-    export GOOGLE_APPLICATION_CREDENTIALS="/tmp/airflow-service-account-key.json"
-    
-    # Additional Terraform commands or provisioning steps
-    # ...
     EOF
 }
 
