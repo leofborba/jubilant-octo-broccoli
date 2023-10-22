@@ -14,8 +14,8 @@ provider "google" {
 }
 
 # Create a Google Cloud Storage bucket
-resource "google_storage_bucket" "airflow_dag_bucket" {
-  name     = "airflow-dags"  # Replace with your desired bucket name
+resource "google_storage_bucket" "airflow_dags" {
+  name     = "ipnet-lb-test-airflow-dags"  # Replace with your desired bucket name
   location = "US"  # Choose the location that suits your requirements
 
   force_destroy = true
@@ -47,6 +47,7 @@ resource "google_service_account_key" "airflow_sa_key" {
 }
 
 resource "google_compute_instance" "airflow_instance" {
+  depends_on = ["google_storage_bucket.airflow_dags"]
   name         = "airflow-instance"
   machine_type = "e2-standard-2"
   zone         = "us-east1-b"
@@ -73,12 +74,12 @@ resource "google_compute_instance" "airflow_instance" {
     airflow db init
     
     # Set up the DAG folder in the created Google Cloud Storage bucket
-    gsutil -m rsync -d -r gs://${google_storage_bucket.airflow_dag_bucket.name} /your/local/dag/folder
+    gsutil -m rsync -d -r gs://${google_storage_bucket.airflow_dags.name} /your/local/dag/folder
     
     # Configure Airflow to use the GCS bucket for DAGs
     cat <<EOF_AIRFLOW_CONFIG > /root/airflow.cfg
     [core]
-    dags_folder = gs://${google_storage_bucket.airflow_dag_bucket.name}
+    dags_folder = gs://${google_storage_bucket.airflow_dags.name}
     remote_logging = True
     remote_log_conn_id = google_cloud_storage_default
     EOF_AIRFLOW_CONFIG
@@ -100,4 +101,12 @@ resource "google_compute_firewall" "allow-http-https-airflow" {
   }
 
   source_ranges = ["0.0.0.0/0"]  # Allow traffic from any source (be cautious in production)
+}
+
+resource "google_storage_bucket_object" "dag_load_csv" {
+  name         = "load_file.csv"
+  bucket       = google_storage_bucket.airflow_dags.name
+  source       = "../../airflow-localhost-to-dev-dags/dags/load_file.py"
+  content_type = "text/csv"
+
 }

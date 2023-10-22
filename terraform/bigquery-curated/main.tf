@@ -44,13 +44,85 @@ resource "google_bigquery_table" "tbl_movies" {
   table_id = "tbl_movies"
 
   schema = <<EOF
-    [      
-      {
-        "name"        : "sys_created_at",
-        "type"       : "DATETIME",
-        "mode"        : "NULLABLE",
-        "description" : "Date time of row was inserted"
-      }
+    [  
+        {
+            "name": "row_num",
+            "type": "INTEGER",
+            "mode": "NULLABLE",
+            "description": "The Permalink"
+        },
+        {
+            "name": "movie_name",
+            "type": "STRING",
+            "mode": "NULLABLE",
+            "description": "State where the head office is located"
+        },
+        {
+    "name": "permalink",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The Permalink"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State where the head office is located"
+  },
+  {
+    "name": "permalink",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The Permalink"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State where the head office is located"
+  },
+  {
+    "name": "permalink",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The Permalink"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State where the head office is located"
+  },
+  {
+    "name": "permalink",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The Permalink"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State where the head office is located"
+  },
+  {
+    "name": "permalink",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The Permalink"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State where the head office is located"
+  },
+        {
+            "name"        : "sys_created_at",
+            "type"       : "DATETIME",
+            "mode"        : "NULLABLE",
+            "description" : "Date time of row was inserted"
+        }
     ]
     EOF
 
@@ -70,7 +142,7 @@ resource "google_bigquery_table" "tbl_movies" {
 
 
 resource "google_bigquery_job" "job" {
-  job_id = "job_load24"
+  job_id = "job_load25"
   
   labels = {
     "load_from" = "gcs_bucket_db_movies",
