@@ -46,77 +46,77 @@ resource "google_bigquery_table" "tbl_movies" {
   schema = <<EOF
     [  
         {
-            "name": "row_num",
-            "type": "INTEGER",
-            "mode": "NULLABLE",
-            "description": "The Permalink"
-        },
-        {
             "name": "movie_name",
             "type": "STRING",
             "mode": "NULLABLE",
-            "description": "State where the head office is located"
+            "description": "Movie name"
         },
         {
-    "name": "permalink",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "The Permalink"
-  },
-  {
-    "name": "state",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "State where the head office is located"
-  },
-  {
-    "name": "permalink",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "The Permalink"
-  },
-  {
-    "name": "state",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "State where the head office is located"
-  },
-  {
-    "name": "permalink",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "The Permalink"
-  },
-  {
-    "name": "state",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "State where the head office is located"
-  },
-  {
-    "name": "permalink",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "The Permalink"
-  },
-  {
-    "name": "state",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "State where the head office is located"
-  },
-  {
-    "name": "permalink",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "The Permalink"
-  },
-  {
-    "name": "state",
-    "type": "STRING",
-    "mode": "NULLABLE",
-    "description": "State where the head office is located"
-  },
+            "name": "year_of_release",
+            "type": "INTEGER",
+            "mode": "NULLABLE",
+            "description": "Year of release"
+        },
+        {
+            "name": "run_time_in_minutes",
+            "type": "INTEGER",
+            "mode": "NULLABLE",
+            "description": "Duration"
+        },
+        {
+            "name": "movie_rating",
+            "type": "FLOAT",
+            "mode": "NULLABLE",
+            "description": "Movie rating"
+        },
+        {
+            "name": "votes",
+            "type": "INTEGER",
+            "mode": "NULLABLE",
+            "description": "Votes"
+        },
+        {
+            "name": "metascore",
+            "type": "FLOAT",
+            "mode": "NULLABLE",
+            "description": "Score"
+        },
+        {
+            "name": "gross",
+            "type": "FLOAT",
+            "mode": "NULLABLE",
+            "description": ""
+        },
+        {
+            "name": "genre",
+            "type": "STRING",
+            "mode": "NULLABLE",
+            "description": "Genre of movie"
+        },
+        {
+            "name": "certification",
+            "type": "STRING",
+            "mode": "NULLABLE",
+            "description": ""
+        },
+        {
+            "name": "director",
+            "type": "STRING",
+            "mode": "NULLABLE",
+            "description": "Director"
+        },
+        {
+            "name": "stars",
+            "type": "STRING",
+            "mode": "NULLABLE",
+            "description": "Cast of movies"
+        },
+        {
+            "name": "description",
+            "type": "STRING",
+            "mode": "NULLABLE",
+            "description": "Movie description"
+        },
         {
             "name"        : "sys_created_at",
             "type"       : "DATETIME",
@@ -142,7 +142,7 @@ resource "google_bigquery_table" "tbl_movies" {
 
 
 resource "google_bigquery_job" "job" {
-  job_id = "job_load25"
+  job_id = "job_load29"
   
   labels = {
     "load_from" = "gcs_bucket_db_movies",
@@ -206,7 +206,7 @@ resource "google_bigquery_table" "ninesview" {
     table_id   = "action_movies_from_90s"
   
     view {
-        query = "SELECT * FROM `ipnet-test-lb.db_movies_processed.tbl_movies` where `Genre` like '%Action%' and `Year_of_Release` between 1990 and 1999"
+        query = "SELECT * FROM `ipnet-test-lb.db_movies_processed.tbl_movies` where `genre` like '%Action%' and `year_of_release` between 1990 and 1999"
         use_legacy_sql = false
     }
 }
