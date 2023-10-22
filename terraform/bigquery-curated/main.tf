@@ -16,7 +16,7 @@ provider "google" {
 resource "google_bigquery_dataset" "db_movies_processed" {
   dataset_id = "db_movies_processed"
   project    = "ipnet-test-lb"
-  location   = "us-east1"
+  location   = "US"
 
   labels = {
     "environment" = "ipnet-test",
@@ -70,9 +70,8 @@ resource "google_bigquery_table" "tbl_movies" {
 
 
 resource "google_bigquery_job" "job" {
-  job_id = "job_load20"
-  location   = "us-east1"
-
+  job_id = "job_load24"
+  
   labels = {
     "load_from" = "gcs_bucket_db_movies",
     "environment" = "ipnet-test",
@@ -101,7 +100,7 @@ resource "google_bigquery_job" "job" {
 resource "google_bigquery_dataset" "dataset_movies_curated" {
   dataset_id = "db_movies_curated"
   project    = "ipnet-test-lb"
-  location   = "us-east1"
+  location   = "US"
 
   labels = {
     "environment" = "ipnet-test",
@@ -127,6 +126,7 @@ resource "google_bigquery_dataset_access" "access" {
 
 # Create a BigQuery view in the dataset
 resource "google_bigquery_table" "ninesview" {
+    depends_on = ["google_bigquery_table.tbl_movies"]
     deletion_protection = false
     
     dataset_id = google_bigquery_dataset.dataset_movies_curated.dataset_id
@@ -134,7 +134,7 @@ resource "google_bigquery_table" "ninesview" {
     table_id   = "action_movies_from_90s"
   
     view {
-        query = "SELECT * FROM `ipnet-test-lb.db_movies_processed.tbl_movies` where Genre like '%Action%' and Year_of_Release between 1990 and 1999"
+        query = "SELECT * FROM `ipnet-test-lb.db_movies_processed.tbl_movies` where `Genre` like '%Action%' and `Year_of_Release` between 1990 and 1999"
         use_legacy_sql = false
     }
 }
